@@ -45,9 +45,6 @@ def handle_new_chat_members_wrapper(message):
     if bot.get_me() in message.new_chat_members:
         handle_new_chat_members(message)
 
-# @bot.message_handler(func=lambda message: True)
-# def handle_message(message):
-#     bot.reply_to(message, 'You said: ' + message.text)
 @bot.message_handler(content_types=['text'])
 def handle_message(message):
     if message.text == 'play With Friends':
