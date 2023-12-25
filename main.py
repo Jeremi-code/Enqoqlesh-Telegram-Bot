@@ -17,10 +17,6 @@ def handle_start(message):
     key1= types.KeyboardButton('play With Friends')
     key2= types.KeyboardButton('help')
     markup.add(key1, key2)
-    if message.chat.type == 'private':
-        bot.send_message(message.chat.id, "Add me to a group", reply_markup=markup)
-    else : 
-        bot.send_message(message.chat.id, "This is a group")
 
 @bot.message_handler(commands=['help'])
 def handle_help(message):
@@ -51,9 +47,9 @@ def handle_message(message):
         if message.chat.type == 'private':
             bot.send_message(message.chat.id, 'You have to add the bot to a group and type /play')
         else:
-            bot.send_message(message.chat.id, 'Processing play...')  # Add your play logic here
+            bot.send_message(message.chat.id, 'Processing play...')  
     elif message.text == 'help':
-        bot.send_message(message.chat.id, 'Help message')  # Add your help logic here
+        bot.send_message(message.chat.id, 'Help message')  
     else:
         bot.reply_to(message, 'You said: ' + message.text)
 bot.polling()
