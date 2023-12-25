@@ -12,15 +12,15 @@ bot = telebot.TeleBot(TOKEN)
 # Handle the /start command
 @bot.message_handler(commands=['start'])
 def handle_start(message):
-    bot.send_message(message.chat.id, "Welcome to Nodemon. Type /help for assistance.")
-
-# Handle all other messages
-@bot.callback_query_handler(func=lambda call: True)
-def handle_query(call):
-    if call.data == 'play':
-        bot.send_message(call.message.chat.id, 'play with friends')
-    elif call.data == 'help':
-        bot.send_message(call.message.chat.id, 'help')
+    # Create a new markup for the message
+    markup = types.ReplyKeyboardMarkup()
+    key1= types.KeyboardButton('play With Friends')
+    key2= types.KeyboardButton('help')
+    markup.add(key1, key2)
+    if message.chat.type == 'private':
+        bot.send_message(message.chat.id, "Add me to a group", reply_markup=markup)
+    else : 
+        bot.send_message(message.chat.id, "This is a group")
 
 @bot.message_handler(commands=['help'])
 def handle_help(message):
@@ -45,8 +45,18 @@ def handle_new_chat_members_wrapper(message):
     if bot.get_me() in message.new_chat_members:
         handle_new_chat_members(message)
 
-@bot.message_handler(func=lambda message: True)
+# @bot.message_handler(func=lambda message: True)
+# def handle_message(message):
+#     bot.reply_to(message, 'You said: ' + message.text)
+@bot.message_handler(content_types=['text'])
 def handle_message(message):
-    bot.reply_to(message, 'You said: ' + message.text)
-
+    if message.text == 'play With Friends':
+        if message.chat.type == 'private':
+            bot.send_message(message.chat.id, 'You have to add the bot to a group and type /play')
+        else:
+            bot.send_message(message.chat.id, 'Processing play...')  # Add your play logic here
+    elif message.text == 'help':
+        bot.send_message(message.chat.id, 'Help message')  # Add your help logic here
+    else:
+        bot.reply_to(message, 'You said: ' + message.text)
 bot.polling()
