@@ -62,16 +62,11 @@ def handle_message(message):
             genere5= types.KeyboardButton('Literature')
             genere6= types.KeyboardButton('Society')
             genere7= types.KeyboardButton('Science')
-
-
             markup.row(genere1)
             markup.row(genere2, genere3)
             markup.row(genere4, genere5)
             markup.row(genere6, genere7)
             bot.send_message(message.chat.id, 'Choose a genere', reply_markup=markup)
-
-            
-            bot.send_message(message.chat.id, 'Processing play...')  
     elif message.text == 'help':
         bot.send_message(message.chat.id, 'Help message')  
     else:
