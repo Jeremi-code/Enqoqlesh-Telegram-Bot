@@ -47,6 +47,19 @@ def handle_message(message):
         if message.chat.type == 'private':
             bot.send_message(message.chat.id, 'You have to add the bot to a group and type /play')
         else:
+            markup = types.ReplyKeyboardMarkup()
+            genere1= types.KeyboardButton('All')
+            genere2= types.KeyboardButton('History')
+            genere3= types.KeyboardButton('Geography')
+            genere4= types.KeyboardButton('Movie')
+            genere5= types.KeyboardButton('Literature')
+            genere6= types.KeyboardButton('Society')
+            genere7= types.KeyboardButton('Science')
+
+            markup.add(genere1, genere2, genere3, genere4, genere5, genere6, genere7)
+            bot.send_message(message.chat.id, 'Choose a genere', reply_markup=markup)
+            
+            
             bot.send_message(message.chat.id, 'Processing play...')  
     elif message.text == 'help':
         bot.send_message(message.chat.id, 'Help message')  
