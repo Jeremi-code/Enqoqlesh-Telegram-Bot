@@ -9,22 +9,29 @@ TOKEN = os.getenv('TOKEN')
 # Create a new bot instance
 bot = telebot.TeleBot(TOKEN)
 
-# Handle the /start command
-@bot.message_handler(commands=['start'])
-def handle_start(message):
-    # Create a new markup for the message
+def start_markup():
     markup = types.ReplyKeyboardMarkup()
     key1= types.KeyboardButton('play With Friends')
     key2= types.KeyboardButton('help')
     markup.add(key1, key2)
+    return markup
+
+# Handle the /start command
+@bot.message_handler(commands=['start'])
+def handle_start(message):
+    # Create a new markup for the message
+    markup = start_markup()
+    # Send the message with the markup
+    bot.send_message(message.chat.id, 'Welcome to the bot!', reply_markup=markup)
 
 @bot.message_handler(commands=['help'])
 def handle_help(message):
     bot.reply_to(message, 'This is a nodemon .')
 
 @bot.message_handler(commands=['stop'])
-def handle_ranking(message):
-    bot.reply_to(message, 'This is the stop message.')
+def handle_stop(message):
+    markup = start_markup()
+    bot.reply_to(message, 'This is the stop message.',reply_markup=markup)
     
 def handle_new_chat_members(message):
     chat_id = message.chat.id
@@ -56,13 +63,18 @@ def handle_message(message):
             genere6= types.KeyboardButton('Society')
             genere7= types.KeyboardButton('Science')
 
-            markup.add(genere1, genere2, genere3, genere4, genere5, genere6, genere7)
+
+            markup.row(genere1)
+            markup.row(genere2, genere3)
+            markup.row(genere4, genere5)
+            markup.row(genere6, genere7)
             bot.send_message(message.chat.id, 'Choose a genere', reply_markup=markup)
-            
+
             
             bot.send_message(message.chat.id, 'Processing play...')  
     elif message.text == 'help':
         bot.send_message(message.chat.id, 'Help message')  
     else:
         bot.reply_to(message, 'You said: ' + message.text)
+print('Bot is running...')
 bot.polling()
