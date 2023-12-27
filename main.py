@@ -104,7 +104,7 @@ def handle_message(message):
         if result is not None :
             for question in result:
                 bot.send_message(message.chat.id, question)
-                time.sleep(1000)
+                time.sleep(30)
     elif message.text == 'help':
         bot.send_message(message.chat.id, 'Help message')  
     else:
