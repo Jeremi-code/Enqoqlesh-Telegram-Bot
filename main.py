@@ -3,12 +3,17 @@ import os
 from dotenv import load_dotenv
 from telebot import types
 import requests
+import asyncio
+import time
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
-
+data = {}
 # Create a new bot instance
 bot = telebot.TeleBot(TOKEN)
+
+genere = ["All", "History", "Geography", "Movie", "Literature", "Society", "Science"]
+rounds = ["1 Rounds", "2 Rounds", "5 Rounds", "10 Rounds"]
 
 def start_markup():
     markup = types.ReplyKeyboardMarkup()
@@ -32,13 +37,25 @@ def genere_markup():
     return markup
 def round_chooser_markup() : 
     markup = types.ReplyKeyboardMarkup()
-    round1 = types.KeyboardButton('10 Rounds')
-    round2 = types.KeyboardButton('20 Rounds')
-    round3 = types.KeyboardButton('50 Rounds')
-    round4 = types.KeyboardButton('100 Rounds')
+    round1 = types.KeyboardButton('1 Rounds')
+    round2 = types.KeyboardButton('2 Rounds')
+    round3 = types.KeyboardButton('5 Rounds')
+    round4 = types.KeyboardButton('10 Rounds')
     markup.add(round1, round2, round3, round4)
     return markup
-
+def make_request(round : int):
+    try :
+        print("what is going on")
+        response = requests.get(f'http://localhost:5000/category/Biology/questions?round={round}')
+        data = response.json()
+        print(data)
+        question_data = data.get('data', [])
+        questions = [question.get('text', '') for question in question_data]
+        print(questions)
+        return questions
+    except requests.exceptions.RequestException as e:
+        print(e)
+        return None
 # Handle the /start command
 @bot.message_handler(commands=['start'])
 def handle_start(message):
@@ -57,17 +74,14 @@ def handle_stop(message):
     bot.reply_to(message, 'This is the stop message.',reply_markup=markup)
     
 def handle_new_chat_members(message):
-    chat_id = message.chat.id
     group_title = message.chat.title
 
     for new_member in message.new_chat_members:
         if new_member.id == bot.get_me().id:
-            # The bot has been added to the group
             bot.reply_to(message, f'Thank you for adding me to {group_title}! If you have any questions, feel free to ask.')
 
 @bot.message_handler(func=lambda message: True, content_types=['new_chat_members'])
 def handle_new_chat_members_wrapper(message):
-    # Ignore if there are other new members in the group
     if bot.get_me() in message.new_chat_members:
         handle_new_chat_members(message)
 
@@ -80,13 +94,17 @@ def handle_message(message):
             markup = genere_markup()
             bot.send_message(message.chat.id, 'Choose a genere', reply_markup=markup)
 
-    elif message.text == 'All':
-        response = requests.get('http://localhost:5000/category/Biology/question/654ca3d85d9c4cbd0966fad3')
-        data = response.json()
-        question_data = data.get('data', {})
-        question = question_data.get('text', '')
-        bot.send_message(message.chat.id, question)
-        print(question) 
+    elif message.text in genere:
+        markup = round_chooser_markup()
+        bot.send_message(message.chat.id, 'Choose a round', reply_markup=markup)
+
+    elif message.text in rounds:
+        round = message.text.split(" ")[0]
+        result = make_request(round)
+        if result is not None :
+            for question in result:
+                bot.send_message(message.chat.id, question)
+                time.sleep(1000)
     elif message.text == 'help':
         bot.send_message(message.chat.id, 'Help message')  
     else:
