@@ -2,6 +2,7 @@ import telebot
 import os
 from dotenv import load_dotenv
 from telebot import types
+import requests
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
@@ -14,6 +15,28 @@ def start_markup():
     key1= types.KeyboardButton('play With Friends')
     key2= types.KeyboardButton('help')
     markup.add(key1, key2)
+    return markup
+def genere_markup():
+    markup = types.ReplyKeyboardMarkup()
+    genere1= types.KeyboardButton('All')
+    genere2= types.KeyboardButton('History')
+    genere3= types.KeyboardButton('Geography')
+    genere4= types.KeyboardButton('Movie')
+    genere5= types.KeyboardButton('Literature')
+    genere6= types.KeyboardButton('Society')
+    genere7= types.KeyboardButton('Science')
+    markup.row(genere1)
+    markup.row(genere2, genere3)
+    markup.row(genere4, genere5)
+    markup.row(genere6, genere7)
+    return markup
+def round_chooser_markup() : 
+    markup = types.ReplyKeyboardMarkup()
+    round1 = types.KeyboardButton('10 Rounds')
+    round2 = types.KeyboardButton('20 Rounds')
+    round3 = types.KeyboardButton('50 Rounds')
+    round4 = types.KeyboardButton('100 Rounds')
+    markup.add(round1, round2, round3, round4)
     return markup
 
 # Handle the /start command
@@ -54,19 +77,16 @@ def handle_message(message):
         if message.chat.type == 'private':
             bot.send_message(message.chat.id, 'You have to add the bot to a group and type /play')
         else:
-            markup = types.ReplyKeyboardMarkup()
-            genere1= types.KeyboardButton('All')
-            genere2= types.KeyboardButton('History')
-            genere3= types.KeyboardButton('Geography')
-            genere4= types.KeyboardButton('Movie')
-            genere5= types.KeyboardButton('Literature')
-            genere6= types.KeyboardButton('Society')
-            genere7= types.KeyboardButton('Science')
-            markup.row(genere1)
-            markup.row(genere2, genere3)
-            markup.row(genere4, genere5)
-            markup.row(genere6, genere7)
+            markup = genere_markup()
             bot.send_message(message.chat.id, 'Choose a genere', reply_markup=markup)
+
+    elif message.text == 'All':
+        response = requests.get('http://localhost:5000/category/Biology/question/654ca3d85d9c4cbd0966fad3')
+        data = response.json()
+        question_data = data.get('data', {})
+        question = question_data.get('text', '')
+        bot.send_message(message.chat.id, question)
+        print(question) 
     elif message.text == 'help':
         bot.send_message(message.chat.id, 'Help message')  
     else:
