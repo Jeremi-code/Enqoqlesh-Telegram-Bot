@@ -1,10 +1,9 @@
+import threading
 import telebot
 import os
 from dotenv import load_dotenv
 from telebot import types
 import requests
-import asyncio
-import time
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
@@ -56,7 +55,6 @@ def make_request(round: int):
         data = response.json()
         question_data = data.get('data', [])
         questions_answers = [{'question' : question.get('text', ''),'answer' : question.get('answer','')} for question in question_data]
-        print(questions_answers)
         return questions_answers
     except requests.exceptions.RequestException as e:
         print(e)
@@ -93,16 +91,29 @@ def handle_new_chat_members_wrapper(message):
     if bot.get_me() in message.new_chat_members:
         handle_new_chat_members(message)
 
-async def ask_questions(message, result):
-    print('so what ')
-    for question_answer in result:
-        bot.send_message(message.chat.id, question_answer['question'])
-        await asyncio.sleep(30)
-@bot.message_handler(content_types=['text'])
-async def handle_message(message):
+def handle_timeout(message, questions, index):
+    if index < len(questions):
+        bot.send_message(message.chat.id, f"Time's up! The correct answer is {questions[index]['answer']}")
+        quiz_flow(message, questions, index + 1)
+
+def quiz_flow(message, questions, index=0):
+    if index < len(questions):
+        question = questions[index]
+        bot.send_message(message.chat.id, question['question'])
+        timer = threading.Timer(10, handle_timeout, args=(message, questions, index))
+        timer.start()
+
+def ask_questions(message, result):
+    print('Asking Questions...')
+    quiz_thread = threading.Thread(target=quiz_flow, args=(message, result))
+    quiz_thread.start()
+
+
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
     if message.text == 'play With Friends':
         if message.chat.type == 'private':
-            await bot.send_message( message.chat.id, 'You have to add the bot to a group and type /play')
+            bot.send_message( message.chat.id, 'You have to add the bot to a group and type /play')
         else:
             markup = genre_markup()
             bot.send_message(message.chat.id, 'Choose agenre', reply_markup=markup)
@@ -116,13 +127,22 @@ async def handle_message(message):
         result = make_request(round)
         print (result)
         if result is not None:
-            await ask_questions(message, result)
+            ask_questions(message, result)
             print("what is going on as well")
 
     elif message.text == 'help':
         bot.send_message(message.chat.id, 'Help message')
     else:
-        bot.reply_to(message, 'You said: ' + message.text)
+        # Check if the message is a response to the question
+        bot.send_message(message.chat.id, "who are you")
+        # if message.reply_to_message.text == "Who invented pencillin?":
+            # Process the response to the question
+        if message.text.lower() == "hello":
+            bot.send_message(message.chat.id, 'Correct answer!')
+        else:
+            bot.send_message(message.chat.id, 'Incorrect answer. Try again!')
+    
 
+        
 print("bot is running")
 bot.polling()
